@@ -49,7 +49,7 @@ const mockMiddleware = options => async (req, res, next) => {
   if (typeof response === "undefined" || response === null) {
     response = defaultResponse;
   }
-  if (response.hasOwnProperty('delay') && response.delay > 0) {
+  if (response && response.hasOwnProperty('delay') && response.delay > 0) {
     // TODO: Use async sleep
     const start = new Date().getTime();
     for (let i = 0; i < 1e7; i += 1) {
