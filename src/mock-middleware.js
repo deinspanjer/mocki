@@ -29,13 +29,14 @@ const mockMiddleware = options => async (req, res, next) => {
 
   const validOperators = ['eq'];
 
-  let response;
-  const defaultResponse = endpoint.responses[0];
-  if (!endpoint.behavior) response = defaultResponse;
-  if (endpoint.behavior === 'random') {
+  let response = {};
+  const defaultResponse = (endpoint.responses[0]) ? endpoint.responses[0] : {};
+
+  if (!endpoint.behavior) {
+    response = defaultResponse;
+  } else if (endpoint.behavior === 'random') {
     response = endpoint.responses[Math.floor(Math.random() * endpoint.responses.length)];
-  }
-  if (endpoint.behavior === 'conditional') {
+  } else if (endpoint.behavior === 'conditional') {
     endpoint.responses.forEach(response => {
       if (!validOperators.includes(response.condition.operator)) {
         logger.error(
@@ -48,7 +49,7 @@ const mockMiddleware = options => async (req, res, next) => {
   if (typeof response === "undefined" || response === null) {
     response = defaultResponse;
   }
-  if (response.hasOwnProperty(delay) && response.delay > 0) {
+  if (response.hasOwnProperty('delay') && response.delay > 0) {
     // TODO: Use async sleep
     const start = new Date().getTime();
     for (let i = 0; i < 1e7; i += 1) {
@@ -65,7 +66,6 @@ const mockMiddleware = options => async (req, res, next) => {
         item => item[response.body.$ref.find] === req.params[response.body.$ref.find]
       );
     } else {
-      console.log('hello');
       response.body = collection.data;
     }
   }
