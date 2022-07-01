@@ -1,5 +1,6 @@
 {
-  "name": "mocki",
+  "name": "@interiordefine/mocki",
+  "repository": "git://github.com/interiordefine/mocki.git",
   "version": "0.3.3",
   "bin": "src/cli.js",
   "description": "",
@@ -12,12 +13,8 @@
   "author": "adalyte",
   "license": "ISC",
   "homepage": "https://mocki.io",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/adalyte/mocki"
-  },
   "bugs": {
-    "url": "https://github.com/adalyte/mocki/issues"
+    "url": "https://github.com/interiordefine/mocki/issues"
   },
   "dependencies": {
     "apollo-server-express": "^2.16.1",
