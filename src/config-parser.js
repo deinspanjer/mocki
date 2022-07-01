@@ -1,60 +1,70 @@
 const faker = require('faker');
-const yaml = require('yaml');
+const yaml = require('js-yaml');
 
-const parse = config => {
-  const fake = {
-    tag: '!Fake',
-    resolve: (_doc, cst) => {
-      let value = cst.strValue;
-      switch (cst.strValue) {
+const FakeYamlType = new yaml.Type('!Fake', {
+    kind: 'scalar',
+    multi: true,
+    representName: function (object) {
+      return 'Fake';
+    },
+    represent: function (object) {
+      return object;
+    },
+    instanceOf: String,
+    construct: function (data, type) {
+      switch (type) {
         case 'firstName':
-          value = faker.name.firstName();
+          return faker.name.firstName();
           break;
         case 'lastName':
-          value = faker.name.lastName();
+          return faker.name.lastName();
           break;
         case 'fullName':
-          value = faker.name.findName();
+          return faker.name.findName();
           break;
         case 'companyName':
-          value = faker.company.companyName();
+          return faker.company.companyName();
           break;
         case 'email':
-          value = faker.internet.email();
+          return faker.internet.email();
           break;
         case 'domainName':
-          value = faker.internet.domainName();
+          return faker.internet.domainName();
           break;
         case 'userName':
-          value = faker.internet.userName();
+          return faker.internet.userName();
           break;
         case 'sentence':
-          value = faker.lorem.sentence();
+          return faker.lorem.sentence();
           break;
         case 'paragraph':
-          value = faker.lorem.paragraph();
+          return faker.lorem.paragraph();
           break;
         case 'pastDate':
-          value = faker.date.past();
+          return faker.date.past();
           break;
         case 'futureDate':
-          value = faker.date.future();
+          return faker.date.future();
           break;
         case 'streetAddress':
-          value = faker.address.streetAddress();
+          return faker.address.streetAddress();
           break;
         case 'zipCode':
-          value = faker.address.zipCode();
+          return faker.address.zipCode();
           break;
         case 'phoneNumber':
-          value = faker.phone.phoneNumber();
+          return faker.phone.phoneNumber();
           break;
-      }
-      return value;
+        default:
+          return faker.company.catchPhrase()
+          break;
+      };
     }
-  };
+  });
 
-  return yaml.parse(config, { customTags: [fake] });
+const FAKE_SCHEMA = yaml.DEFAULT_SCHEMA.extend([FakeYamlType]);
+const parse = config => {
+  return yaml.load(config, { schema: FAKE_SCHEMA });
 };
 
-module.exports = { parse };
+module.exports.parse = parse;

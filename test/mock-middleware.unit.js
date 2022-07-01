@@ -83,7 +83,7 @@ describe('mock middleware unit tests', () => {
       .get('/users')
       .expect(200)
       .then(res => {
-        expect(res.body).to.include({ id: 'a', name: 'Alpha' });
+        expect(res.body).to.be.an('array').that.deep.include({ id: 'a', name: 'Alpha' });
       });
   });
 
