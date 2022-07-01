@@ -46,7 +46,7 @@ const mockMiddleware = options => async (req, res, next) => {
     response = endpoint.responses.find(response => get(req, response.condition.comparand) === response.condition.value);
   }
   if (!response) response = defaultResponse;
-  if (response.delay && response.delay > 0) {
+  if (response.hasOwnProperty(delay) && response.delay > 0) {
     // TODO: Use async sleep
     const start = new Date().getTime();
     for (let i = 0; i < 1e7; i += 1) {
