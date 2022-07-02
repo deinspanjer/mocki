@@ -6,7 +6,7 @@ const { expect } = require('chai');
 const Promise = require('bluebird');
 const mockMiddleware = require('../src/mock-middleware');
 const logger = require('../src/logger');
-const graphqlSchema = require('./graphql-schema.json');
+const graphqlSchema = require('./json/graphql-schema.json');
 
 let app;
 

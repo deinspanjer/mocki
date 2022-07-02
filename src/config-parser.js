@@ -1,5 +1,7 @@
 const faker = require('faker');
 const yaml = require('js-yaml');
+const fs = require('fs');
+const logger = require("./logger");
 
 const FakeYamlType = new yaml.Type('!Fake', {
     kind: 'scalar',
@@ -11,7 +13,7 @@ const FakeYamlType = new yaml.Type('!Fake', {
       return object;
     },
     instanceOf: String,
-    construct: function (data, type) {
+    construct: function (type, kind) {
       switch (type) {
         case 'firstName':
           return faker.name.firstName();
@@ -58,13 +60,44 @@ const FakeYamlType = new yaml.Type('!Fake', {
         default:
           return faker.company.catchPhrase()
           break;
-      };
+      }
     }
   });
 
-const FAKE_SCHEMA = yaml.DEFAULT_SCHEMA.extend([FakeYamlType]);
+const FileYamlType = new yaml.Type('!File', {
+  kind: 'scalar',
+  multi: true,
+  representName: function (object) {
+    return 'File Contents';
+  },
+  represent: function (object) {
+    return object;
+  },
+  instanceOf: String,
+  construct: function (filepath, kind) {
+    try {
+      let importFile = fs.readFileSync(filepath, 'utf8');
+      JSON.parse(importFile);
+      return yaml.load(importFile);
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        console.log('File not found!');
+        logger.error(`Error: Failed to read file ${filepath}`);
+      } else if (err instanceof SyntaxError) {
+        logger.error(`Error: Unable to parse json in ${filepath}`);
+      } else if (err instanceof yaml.YAMLException) {
+        logger.error(`Error: Unable to parse json in ${filepath} to yaml`);
+      } else {
+        logger.error(`Error: Some other error occurred.`);
+      }
+      throw err;
+    }
+  }
+});
+
+const FILE_FAKE_SCHEMA = yaml.DEFAULT_SCHEMA.extend([FakeYamlType, FileYamlType]);
 const parse = config => {
-  return yaml.load(config, { schema: FAKE_SCHEMA });
+  return yaml.load(config, { schema: FILE_FAKE_SCHEMA });
 };
 
 module.exports.parse = parse;
