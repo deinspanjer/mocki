@@ -234,7 +234,8 @@ describe('mock middleware unit tests', () => {
     expect(responses).to.include('b');
   });
 
-  it('should use conditional behavior', async () => {
+  it('should use conditional behavior with json', async () => {
+    app.use(bodyParser.json());
     app.use(
       mockMiddleware({
         getConfiguration: async () => ({
@@ -243,27 +244,41 @@ describe('mock middleware unit tests', () => {
             endpoints: [
               {
                 path: '/',
-                method: 'get',
+                method: 'post',
                 behavior: 'conditional',
                 responses: [
                   {
+                    headers: [
+                      {
+                        name: "Content-Type",
+                        value: "application/json; charset=utf-8"
+                      }
+                    ],
                     condition: {
-                      operator: 'eq',
-                      comparand: 'headers.foo',
-                      value: 'bar'
+                      operator: 'includes',
+                      comparand: 'body.query',
+                      value: "query availableStoresConfigData {\n" +
+                          "    availableStores {\n" +
+                          "        code\n" +
+                          "        id\n" +
+                          "        secure_base_media_url\n" +
+                          "        store_name\n" +
+                          "        default_display_currency_code\n" +
+                          "    }\n" +
+                          "}\n"
                     },
                     body: {
-                      value: 'a'
-                    }
-                  },
-                  {
-                    condition: {
-                      operator: 'eq',
-                      comparand: 'headers.foo',
-                      value: 'baz'
-                    },
-                    body: {
-                      value: 'b'
+                      data: {
+                        "availableStores": [
+                          {
+                            "code": "default",
+                            "id": 1,
+                            "secure_base_media_url": "/media/",
+                            "store_name": "Default Store View",
+                            "default_display_currency_code": "USD"
+                          }
+                        ]
+                      }
                     }
                   }
                 ]
@@ -276,15 +291,75 @@ describe('mock middleware unit tests', () => {
     );
     const request = supertest(app);
     await request
-      .get('/')
-      .set('foo', 'bar')
+      .post('/')
+      .set('Accept', 'application/json')
+      .type('json')
+      .send({ query: "query availableStoresConfigData {\n" +
+          "    availableStores {\n" +
+          "        code\n" +
+          "        id\n" +
+          "        secure_base_media_url\n" +
+          "        store_name\n" +
+          "        default_display_currency_code\n" +
+          "    }\n" +
+          "}\n", next: 3445})
       .expect(200)
-      .then(res => expect(res.body.value).equals('a'));
+      .expect('Content-Type', 'application/json; charset=utf-8')
+      .then(res => expect(res.body.data).to.be.an('object').that
+      .hasOwnProperty(['availableStores']));
+  });
+  it('should use conditional behavior based on headers', async () => {
+    app.use(bodyParser.json());
+    app.use(
+        mockMiddleware({
+          getConfiguration: async () => ({
+            parsedPath: '/',
+            configuration: {
+              endpoints: [
+                {
+                  path: '/',
+                  method: 'get',
+                  behavior: 'conditional',
+                  responses: [
+                    {
+                      condition: {
+                        operator: 'eq',
+                        comparand: 'headers.foo',
+                        value: 'bar'
+                      },
+                      body: {
+                        value: 'a'
+                      }
+                    },
+                    {
+                      condition: {
+                        operator: 'eq',
+                        comparand: 'headers.foo',
+                        value: 'baz'
+                      },
+                      body: {
+                        value: 'b'
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }),
+          logger
+        })
+    );
+    const request = supertest(app);
     await request
-      .get('/')
-      .set('foo', 'baz')
-      .expect(200)
-      .then(res => expect(res.body.value).equals('b'));
+        .get('/')
+        .set('foo', 'bar')
+        .expect(200)
+        .then(res => expect(res.body.value).equals('a'));
+    await request
+        .get('/')
+        .set('foo', 'baz')
+        .expect(200)
+        .then(res => expect(res.body.value).equals('b'));
   });
 
   it('should throw when using invalid operator', async () => {

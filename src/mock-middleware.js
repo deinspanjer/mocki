@@ -1,6 +1,7 @@
 const { pathToRegexp, match } = require('path-to-regexp');
 const { get } = require('lodash');
 const graphql = require('./graphql');
+const _ = require('underscore');
 
 const mockMiddleware = options => async (req, res, next) => {
   const { getConfiguration, logger } = options;
@@ -27,7 +28,7 @@ const mockMiddleware = options => async (req, res, next) => {
     return res.send(graphqlResponse);
   }
 
-  const validOperators = ['eq'];
+  const validOperators = ['eq', 'includes'];
 
   let response = {};
   const defaultResponse = (endpoint.responses[0]) ? endpoint.responses[0] : {};
@@ -37,15 +38,33 @@ const mockMiddleware = options => async (req, res, next) => {
   } else if (endpoint.behavior === 'random') {
     response = endpoint.responses[Math.floor(Math.random() * endpoint.responses.length)];
   } else if (endpoint.behavior === 'conditional') {
-    endpoint.responses.forEach(response => {
-      if (!validOperators.includes(response.condition.operator)) {
+    const operators = {
+      'eq': function(a, b) { return a === b },
+      'includes': function(a, b) {
+        if (typeof a === 'string' && typeof b === 'string') {
+          let sanitizedA = a.replace(/\s+/g, '').toLowerCase();
+          let sanitizedB = b.replace(/\s+/g, '').toLowerCase();
+
+          return sanitizedA === sanitizedB;
+        } else {
+          return a == b;
+        }
+      }
+    };
+    response = response || defaultResponse;
+    endpoint.responses.forEach(responseElement => {
+      if (!validOperators.includes(responseElement.condition.operator)) {
         logger.error(
-          `Invalid operator '${response.condition.operator}'. Valid operators are: ${validOperators.join(', ')}.`
+          `Invalid operator '${responseElement.condition.operator}'. Valid operators are: ${validOperators.join(', ')}. Includes is a case-insensitive whitespace-ignored string comparator.`
         );
+      } else {
+        if (operators[responseElement.condition.operator](get(req, responseElement.condition.comparand), responseElement.condition.value)) {
+          response = responseElement;
+        }
       }
     });
-    response = endpoint.responses.find(response => get(req, response.condition.comparand) === response.condition.value);
   }
+
   if (typeof response === "undefined" || response === null) {
     response = defaultResponse;
   }

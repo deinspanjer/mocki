@@ -77,8 +77,7 @@ const FileYamlType = new yaml.Type('!File', {
   construct: function (filepath, kind) {
     try {
       let importFile = fs.readFileSync(filepath, 'utf8');
-      JSON.parse(importFile);
-      return yaml.load(importFile);
+      return JSON.parse(importFile);
     } catch (err) {
       if (err.code === 'ENOENT') {
         console.log('File not found!');

@@ -33,6 +33,7 @@
     "lodash": "^4.17.15",
     "path-to-regexp": "^6.1.0",
     "supertest": "^4.0.2",
+    "underscore": "^1.13.4",
     "yaml": "^1.7.2"
   },
   "devDependencies": {
