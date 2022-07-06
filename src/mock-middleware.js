@@ -89,6 +89,11 @@ const mockMiddleware = options => async (req, res, next) => {
     }
   }
 
+  if (req.is('application/json')) {
+    response.body = JSON.stringify(response.body);
+    res.set("Content-Type", "application/json");
+  }
+
   res.status(response.statusCode || 200);
   if (response.headers) {
     response.headers.forEach(header => {

@@ -21,6 +21,7 @@ describe('mock middleware unit tests', () => {
   });
 
   it('should default to 200 ok if statusCode is not defined', async () => {
+    app.use(bodyParser.json());
     app.use(
       mockMiddleware({
         getConfiguration: async () => ({
@@ -46,6 +47,47 @@ describe('mock middleware unit tests', () => {
         expect(res.body).to.have.property('message');
         expect(res.body.message).to.equal('hello');
       });
+  });
+
+  it('should escape json responses', async () => {
+    app.use(
+        mockMiddleware({
+          getConfiguration: async () => ({
+            parsedPath: '/users',
+            configuration: {
+              endpoints: [
+                {
+                  path: '/users',
+                  method: 'post',
+                  responses: [
+                    {
+                      body: {
+                        data: {
+                          value: 'https://google.com/',
+                          key: "Here's a string with a quote!\""
+                        }
+                      },
+                      headers: []
+                    }
+                  ]
+                }
+              ]
+            }
+          }),
+          logger
+        })
+    );
+    const request = supertest(app);
+    return request
+        .post('/users')
+        .set('Content-Type', 'application/json')
+        .set('Accept', 'application/json' )
+        .send({})
+        .expect(200)
+        .then(res => {
+          expect(res.get('Content-Type')).to.contain('application/json')
+          expect(res.body).to.be.an('object').that.deep.include({ data: {value: 'https://google.com/', key: 'Here\'s a string with a quote!"' }});
+        });
   });
 
   it('should use collection reference as response body', async () => {
@@ -158,6 +200,7 @@ describe('mock middleware unit tests', () => {
       .then(res => {
         expect(res.body).to.have.property('message');
         expect(res.body.message).to.equal('hello');
+        expect(res.get('Content-Type')).to.contain('application/json');
       });
   });
 
@@ -251,7 +294,7 @@ describe('mock middleware unit tests', () => {
                     headers: [
                       {
                         name: "Content-Type",
-                        value: "application/json; charset=utf-8"
+                        value: "application/json"
                       }
                     ],
                     condition: {
@@ -304,9 +347,12 @@ describe('mock middleware unit tests', () => {
           "    }\n" +
           "}\n", next: 3445})
       .expect(200)
-      .expect('Content-Type', 'application/json; charset=utf-8')
-      .then(res => expect(res.body.data).to.be.an('object').that
-      .hasOwnProperty(['availableStores']));
+      .then(res => {
+        expect(res.body.data).to.be.an('object').that
+            .hasOwnProperty(['availableStores']);
+        expect(res.get('Content-Type')).to.contain('application/json');
+      }
+      );
   });
   it('should use conditional behavior based on headers', async () => {
     app.use(bodyParser.json());

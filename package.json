@@ -4,7 +4,7 @@
     "registry": "https://npm.pkg.github.com/"
   },
   "repository": "git://github.com/interiordefine/mocki.git",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "bin": "src/cli.js",
   "description": "",
   "main": "src/index.js",
