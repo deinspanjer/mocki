@@ -89,10 +89,20 @@ const mockMiddleware = options => async (req, res, next) => {
     }
   }
 
-  if (req.is('application/json')) {
-    response.body = JSON.stringify(response.body);
-    res.set("Content-Type", "application/json");
+  try {
+    if (req.is('application/json') && response.body) {
+      let validJSON = JSON.parse(response.body);
+      response.body = JSON.stringify(validJSON).replaceAll('/', '\\/');
+      res.set("Content-Type", "application/json");
+    }
+  } catch (err) {
+    logger.error(
+        `Invalid JSON response body!`
+    );
+    console.log(response.body);
+    console.log(err);
   }
+
 
   res.status(response.statusCode || 200);
   if (response.headers) {

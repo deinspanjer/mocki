@@ -31,7 +31,7 @@ describe('mock middleware unit tests', () => {
               {
                 path: '/',
                 method: 'get',
-                responses: [{ body: { message: 'hello' }, headers: [] }]
+                responses: [{ body: { message: "hello" }, headers: [] }]
               }
             ]
           }
@@ -45,7 +45,7 @@ describe('mock middleware unit tests', () => {
       .expect(200)
       .then(res => {
         expect(res.body).to.have.property('message');
-        expect(res.body.message).to.equal('hello');
+        expect(res.body.message).to.equal("hello");
       });
   });
 
@@ -63,7 +63,7 @@ describe('mock middleware unit tests', () => {
                     {
                       body: {
                         data: {
-                          value: 'https://google.com/',
+                          value: "https://google.com/",
                           key: "Here's a string with a quote!\""
                         }
                       },
@@ -86,7 +86,7 @@ describe('mock middleware unit tests', () => {
         .expect(200)
         .then(res => {
           expect(res.get('Content-Type')).to.contain('application/json')
-          expect(res.body).to.be.an('object').that.deep.include({ data: {value: 'https://google.com/', key: 'Here\'s a string with a quote!"' }});
+          expect(res.body).to.be.an('object').that.deep.include({ data: {value: "https:\/\/google.com\/", key: "Here's a string with a quote!\"" }});
         });
   });
 
@@ -100,7 +100,7 @@ describe('mock middleware unit tests', () => {
               {
                 type: 'collection',
                 id: 'users',
-                data: [{ id: 'a', name: 'Alpha' }]
+                data: [{ "id": "a", "name": "Alpha" }]
               }
             ],
             endpoints: [
@@ -109,7 +109,7 @@ describe('mock middleware unit tests', () => {
                 method: 'get',
                 responses: [
                   {
-                    body: { $ref: { type: 'collection', id: 'users' } },
+                    body: { $ref: { type: "collection", id: "users" } },
                     headers: []
                   }
                 ]
@@ -125,7 +125,7 @@ describe('mock middleware unit tests', () => {
       .get('/users')
       .expect(200)
       .then(res => {
-        expect(res.body).to.be.an('array').that.deep.include({ id: 'a', name: 'Alpha' });
+        expect(res.body).to.be.an('array').that.deep.include({ "id": "a", "name": "Alpha" });
       });
   });
 
@@ -139,7 +139,7 @@ describe('mock middleware unit tests', () => {
               {
                 type: 'collection',
                 id: 'users',
-                data: [{ id: 'a', name: 'Alpha' }]
+                data: [{ "id": "a", "name": "Alpha" }]
               }
             ],
             endpoints: [
@@ -148,7 +148,7 @@ describe('mock middleware unit tests', () => {
                 method: 'get',
                 responses: [
                   {
-                    body: { $ref: { type: 'collection', id: 'users', find: 'id' } },
+                    body: { $ref: { "type": "collection", "id": "users", "find": "id" } },
                     headers: []
                   }
                 ]
@@ -181,8 +181,8 @@ describe('mock middleware unit tests', () => {
                 method: 'get',
                 responses: [
                   {
-                    body: { message: 'hello' },
-                    headers: [{ name: 'foo', value: 'bar' }]
+                    body: { "message": "hello" },
+                    headers: [{ "name": "foo", "value": "bar" }]
                   }
                 ]
               }
@@ -251,10 +251,10 @@ describe('mock middleware unit tests', () => {
                 behavior: 'random',
                 responses: [
                   {
-                    body: { value: 'a' }
+                    body: { "value": "a" }
                   },
                   {
-                    body: { value: 'b' }
+                    body: { "value": "b" }
                   }
                 ]
               }
@@ -298,8 +298,8 @@ describe('mock middleware unit tests', () => {
                       }
                     ],
                     condition: {
-                      operator: 'includes',
-                      comparand: 'body.query',
+                      operator: "includes",
+                      comparand: "body.query",
                       value: "query availableStoresConfigData {\n" +
                           "    availableStores {\n" +
                           "        code\n" +
@@ -374,7 +374,7 @@ describe('mock middleware unit tests', () => {
                         value: 'bar'
                       },
                       body: {
-                        value: 'a'
+                        "value": "a"
                       }
                     },
                     {
@@ -384,7 +384,7 @@ describe('mock middleware unit tests', () => {
                         value: 'baz'
                       },
                       body: {
-                        value: 'b'
+                        "value": "b"
                       }
                     }
                   ]
@@ -428,7 +428,7 @@ describe('mock middleware unit tests', () => {
                       value: 'bar'
                     },
                     body: {
-                      value: 'a'
+                      "value": "a"
                     }
                   }
                 ]
