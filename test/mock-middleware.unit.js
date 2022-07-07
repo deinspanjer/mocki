@@ -44,7 +44,7 @@ describe('mock middleware unit tests', () => {
       .get('/test')
       .expect(200)
       .then(res => {
-        expect(res.body).to.have.property('message');
+        expect(res.body).to.have.property("message");
         expect(res.body.message).to.equal("hello");
       });
   });
@@ -63,8 +63,8 @@ describe('mock middleware unit tests', () => {
                     {
                       body: {
                         data: {
-                          value: "https://google.com/",
-                          key: "Here's a string with a quote!\""
+                          value: "https:\/\/google.com/",
+                          key: "Okay this is the URL https:\/\/www.interiordefine.com"
                         }
                       },
                       headers: []
@@ -86,7 +86,7 @@ describe('mock middleware unit tests', () => {
         .expect(200)
         .then(res => {
           expect(res.get('Content-Type')).to.contain('application/json')
-          expect(res.body).to.be.an('object').that.deep.include({ data: {value: "https:\/\/google.com\/", key: "Here's a string with a quote!\"" }});
+          expect(res.body).to.be.an('object').that.deep.include({ data: {value: "https:\/\/google.com\/", key: "Okay this is the URL https:\/\/www.interiordefine.com" }});
         });
   });
 
@@ -275,6 +275,85 @@ describe('mock middleware unit tests', () => {
     );
     expect(responses).to.include('a');
     expect(responses).to.include('b');
+  });
+
+  it('should handle comments in json gracefully', async () => {
+    app.use(bodyParser.json());
+    app.use(
+        mockMiddleware({
+          getConfiguration: async () => ({
+            parsedPath: '/',
+            configuration: {
+              endpoints: [
+                {
+                  path: '/',
+                  method: 'post',
+                  behavior: 'conditional',
+                  responses: [
+                    {
+                      headers: [
+                        {
+                          name: "Content-Type",
+                          value: "application/json"
+                        }
+                      ],
+                      condition: {
+                        operator: "includes",
+                        comparand: "body.query",
+                        value: "query availableStoresConfigData {\n" +
+                            "    availableStores {\n" +
+                            "        code\n" +
+                            "        id\n" +
+                            "        secure_base_media_url\n" +
+                            "        store_name\n" +
+                            "        default_display_currency_code\n" +
+                            "    }\n" +
+                            "}\n"
+                      },
+                      body: {
+                        data: {
+                          "availableStores": [
+                            {
+                              "code": "default",
+                              "id": 1,
+                              "secure_base_media_url": "/media/",
+                              "store_name": "Default Store View",
+                              "default_display_currency_code": "USD"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }),
+          logger
+        })
+    );
+    const request = supertest(app);
+    let requestQuery = { query: JSON.stringify("# This is a dreaded comment.\n" +
+          "query availableStoresConfigData {\n" +
+          "    availableStores {\n" +
+          "        code\n" +
+          "        id\n" +
+          "        secure_base_media_url\n" +
+          "        store_name\n" +
+          "        default_display_currency_code\n" +
+          "    }\n" +
+          "}\n").replace(/\\\"/g, '"').replace(/\//g, '\\/'), next: 3445};
+    await request
+        .post('/')
+        .set('Accept', 'application/json')
+        .send(requestQuery)
+        .expect(200)
+        .then(res => {
+              expect(res.body.data).to.be.an('object').that
+                  .hasOwnProperty(['availableStores']);
+              expect(res.get('Content-Type')).to.contain('application/json');
+            }
+        );
   });
 
   it('should use conditional behavior with json', async () => {

@@ -2,6 +2,7 @@ const { pathToRegexp, match } = require('path-to-regexp');
 const { get } = require('lodash');
 const graphql = require('./graphql');
 const _ = require('underscore');
+const without = require('without-comments');
 
 const mockMiddleware = options => async (req, res, next) => {
   const { getConfiguration, logger } = options;
@@ -13,7 +14,7 @@ const mockMiddleware = options => async (req, res, next) => {
   }
 
   const endpoint = configuration.endpoints.find(endpointToMatch =>
-    parsedPath.match(pathToRegexp(endpointToMatch.path))
+      parsedPath.match(pathToRegexp(endpointToMatch.path))
   );
 
   if (!endpoint) {
@@ -42,8 +43,16 @@ const mockMiddleware = options => async (req, res, next) => {
       'eq': function(a, b) { return a === b },
       'includes': function(a, b) {
         if (typeof a === 'string' && typeof b === 'string') {
-          let sanitizedA = a.replace(/\s+/g, '').toLowerCase();
-          let sanitizedB = b.replace(/\s+/g, '').toLowerCase();
+          let sanitizedA = a;
+
+          try {
+            sanitizedA = JSON.parse(a);
+          } catch (err) {
+            sanitizedA = a;
+          }
+
+          sanitizedA = without.parse(sanitizedA).replace(/\s+/g, '').toLowerCase();
+          const sanitizedB = b.replace(/^#.*$/gm, '').replace(/\s+/g, '').toLowerCase();
 
           return sanitizedA === sanitizedB;
         } else {
@@ -55,7 +64,7 @@ const mockMiddleware = options => async (req, res, next) => {
     endpoint.responses.forEach(responseElement => {
       if (!validOperators.includes(responseElement.condition.operator)) {
         logger.error(
-          `Invalid operator '${responseElement.condition.operator}'. Valid operators are: ${validOperators.join(', ')}. Includes is a case-insensitive whitespace-ignored string comparator.`
+            `Invalid operator '${responseElement.condition.operator}'. Valid operators are: ${validOperators.join(', ')}. Includes is a case-insensitive whitespace-ignored string comparator.`
         );
       } else {
         if (operators[responseElement.condition.operator](get(req, responseElement.condition.comparand), responseElement.condition.value)) {
@@ -82,7 +91,7 @@ const mockMiddleware = options => async (req, res, next) => {
     const collection = configuration.references.find(collection => collection.id === response.body.$ref.id);
     if (response.body.$ref.find) {
       response.body = collection.data.find(
-        item => item[response.body.$ref.find] === req.params[response.body.$ref.find]
+          item => item[response.body.$ref.find] === req.params[response.body.$ref.find]
       );
     } else {
       response.body = collection.data;
@@ -91,8 +100,14 @@ const mockMiddleware = options => async (req, res, next) => {
 
   try {
     if (req.is('application/json') && response.body) {
-      let validJSON = JSON.parse(response.body);
-      response.body = JSON.stringify(validJSON).replaceAll('/', '\\/');
+      if (typeof response.body !== "string") {
+        response.body = JSON.stringify(response.body);
+      }
+
+      if (!response.body.match(/\\\//g)) {
+        response.body = response.body.replace(/\//g, '\\/');
+      }
+
       res.set("Content-Type", "application/json");
     }
   } catch (err) {
