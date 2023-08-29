@@ -1,122 +1,153 @@
 name: mocki
 port: 3001
 references:
-  - type: collection
-    id: users
-    data: [{ id: 'a', name: 'Alpha' }]
+- type: collection
+  id: users
+  data: [ { id: 'a', name: 'Alpha' } ]
 endpoints:
-  - path: /
-    method: get
-    responses:
-      - statusCode: 200
-        body:
-          message: Hello from Mocki
-        headers:
-          - name: content-type
-            value: application/json
-  - path: /conditional
-    method: get
-    behavior: conditional
-    responses:
-      - statusCode: 200
-        condition: # trigger if authorization header equals 'valid'
-          operator: eq
-          comparand: headers.authorization # for query parameters: query.prop, for path parameters: params.prop
-          value: valid
-        body:
-          message: valid header
-        headers:
-          - name: content-type
-            value: application/json
-      - statusCode: 401
-        condition: # trigger if authorization header equals 'invalid'
-          operator: eq
-          comparand: headers.authorization
-          value: invalid
-        body:
-          message: invalid header
-        headers:
-          - name: content-type
-            value: application/json
-  - path: /conditional/:id
-    method: get
-    behavior: conditional
-    responses:
-      - statusCode: 200
-        condition:
-          operator: eq
-          comparand: params.message
-          value:
-        body:
-          message: param value was a
-        headers:
-          - name: content-type
-            value: application/json
-      - statusCode: 200
-        condition:
-          operator: eq
-          comparand: query.message
-          value: b
-        body:
-          message: param value was b
-        headers:
-          - name: content-type
-            value: application/json
-  - path: /random
-    method: get
-    behavior: random
-    responses:
-      - statusCode: 200
-        body:
-          number: 1
-        headers:
-          - name: content-type
-            value: application/json
-      - statusCode: 200
-        body:
-          number: 2
-        headers:
-          - name: content-type
-            value: application/json
-  - path: /fake
-    method: get
-    responses:
-      - statusCode: 200
-        body:
-          firstName: !Fake firstName
-          lastName: !Fake lastName
-          email: !Fake email
-          address: !Fake streetAddress
-          phone: !Fake phoneNumber
-          createdAt: !Fake pastDate
-          company: !Fake company
-        headers:
-          - name: content-type
-            value: application/json
-  - path: /delay
-    method: get
-    responses:
-      - statusCode: 200
-        delay: 500
-        body:
-          message: delayed by 500 ms
-        headers:
-          - name: content-type
-            value: application/json
-  - path: /collection
-    method: get
-    responses:
-      - statusCode: 200
-        body:
-          $ref:
-            type: collection
-            id: users
-  - path: /collection/:id
-    method: get
-    responses:
-      - statusCode: 200
-        body:
-          $ref:
-            type: collection
-            id: users
-            find: id
+- path: /
+  method: get
+  responses:
+  - statusCode: 200
+    body:
+      message: Hello from Mocki
+    headers:
+    - name: content-type
+      value: application/json
+- path: /conditional
+  method: get
+  behavior: conditional
+  responses:
+  - statusCode: 200
+    condition: # trigger if authorization header equals 'valid'
+      operator: eq
+      comparand: headers.authorization # for query parameters: query.prop, for path parameters: params.prop
+      value: valid
+    body:
+      message: valid header
+    headers:
+    - name: content-type
+      value: application/json
+  - statusCode: 401
+    condition: # trigger if authorization header equals 'invalid'
+      operator: eq
+      comparand: headers.authorization
+      value: invalid
+    body:
+      message: invalid header
+    headers:
+    - name: content-type
+      value: application/json
+- path: /conditional/:id
+  method: get
+  behavior: conditional
+  responses:
+  - statusCode: 200
+    condition:
+      operator: eq
+      comparand: params.id
+      value: a
+    body:
+      message: param value was a
+    headers:
+    - name: content-type
+      value: application/json
+  - statusCode: 200
+    condition:
+      operator: eq
+      comparand: params.id
+      value: b
+    body:
+      message: param value was b
+    headers:
+    - name: content-type
+      value: application/json
+- path: /conditional/query\?id=:id
+  method: get
+  behavior: conditional
+  responses:
+  - statusCode: 200
+    condition:
+      operator: eq
+      comparand: query.id
+      value: a
+    body:
+      message: query value was a
+    headers:
+    - name: content-type
+      value: application/json
+  - statusCode: 200
+    condition:
+      operator: eq
+      comparand: query.id
+      value: b
+    body:
+      message: query value was b
+    headers:
+    - name: content-type
+      value: application/json
+- path: /graphql
+  method: post
+  graphql:
+    schema: |
+      type Query {
+          hello: String
+        }
+- path: /random
+  method: get
+  behavior: random
+  responses:
+  - statusCode: 200
+    body:
+      number: 1
+    headers:
+    - name: content-type
+      value: application/json
+  - statusCode: 200
+    body:
+      number: 2
+    headers:
+    - name: content-type
+      value: application/json
+- path: /fake
+  method: get
+  responses:
+  - statusCode: 200
+    body:
+      firstName: !Fake firstName
+      lastName: !Fake lastName
+      email: !Fake email
+      address: !Fake streetAddress
+      phone: !Fake phoneNumber
+      createdAt: !Fake pastDate
+      company: !Fake company
+    headers:
+    - name: content-type
+      value: application/json
+- path: /delay
+  method: get
+  responses:
+  - statusCode: 200
+    delay: 500
+    body:
+      message: delayed by 500 ms
+    headers:
+    - name: content-type
+      value: application/json
+- path: /collection
+  method: get
+  responses:
+  - statusCode: 200
+    body:
+      $ref:
+        type: collection
+        id: users
+- path: /collection/:id
+  method: get
+  responses:
+  - statusCode: 200
+    body:
+      $ref:
+        type: collection
+        id: users
+        find: id

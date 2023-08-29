@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { ApolloServer } = require('apollo-server-express');
 const supertest = require('supertest');
-const { buildClientSchema } = require('graphql');
+const { buildSchema } = require('graphql');
 
 const generateMocks = obj => {
   const result = {};
@@ -16,7 +16,7 @@ const generateMocks = obj => {
 };
 
 const graphql = async (endpoint, req) => {
-  const schema = buildClientSchema(endpoint.graphql.schema);
+  const schema = buildSchema(endpoint.graphql.schema);
 
   const server = new ApolloServer({
     schema,
